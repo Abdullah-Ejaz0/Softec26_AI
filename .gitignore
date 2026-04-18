@@ -1,0 +1,5 @@
+__pycache__/
+*.py[cod]
+
+ai_hackthon_backend/credentials.json
+ai_hackthon_backend/db.sqlite3
