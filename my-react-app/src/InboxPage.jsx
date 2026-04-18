@@ -69,11 +69,18 @@ const buildOAuthRedirectUri = () => {
   return `${basePath}?gmail_oauth=1`;
 };
 
+const mailboxLabel = (mailbox) => {
+  if (mailbox === 'spam') return 'Spam';
+  if (mailbox === 'both') return 'Inbox + Spam';
+  return 'Inbox';
+};
+
 export default function InboxPage({ onNext, onEmailsReady, gmailAuth, setGmailAuth }) {
   const [apiKey, setApiKey] = useState(() => import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('GEMINI_API_KEY') || '');
   const [mode, setMode] = useState(null); // null | 'demo' | 'type' | 'inbox'
   const [oauthStarting, setOauthStarting] = useState(false);
   const [extracting, setExtracting] = useState(false);
+  const [extractingMailbox, setExtractingMailbox] = useState(null);
   const [connectError, setConnectError] = useState('');
   const [connectSuccess, setConnectSuccess] = useState('');
   const [gmailOpportunityEmails, setGmailOpportunityEmails] = useState([]);
@@ -94,6 +101,7 @@ export default function InboxPage({ onNext, onEmailsReady, gmailAuth, setGmailAu
   const [scanIndex, setScanIndex] = useState(-1);
 
   const usingGmailOpportunities = gmailOpportunityEmails.length > 0;
+  const canRetrieveFromGmail = Boolean(gmailAuth?.connected) && !gmailAuth?.busy && !oauthStarting;
 
   // The emails shown in Demo Inbox: Gmail opportunities if available, otherwise local demo emails.
   const activeEmails = usingGmailOpportunities
@@ -193,8 +201,16 @@ export default function InboxPage({ onNext, onEmailsReady, gmailAuth, setGmailAu
     }
   };
 
-  const handleFetchGmailOpportunities = async () => {
+  const handleFetchGmailOpportunities = async (mailbox = 'inbox') => {
+    if (!gmailAuth?.connected) {
+      const msg = 'Connect Gmail first before retrieving emails.';
+      setConnectError(msg);
+      setConnectSuccess('');
+      return;
+    }
+
     setExtracting(true);
+    setExtractingMailbox(mailbox);
     setConnectError('');
     setConnectSuccess('');
 
@@ -207,10 +223,11 @@ export default function InboxPage({ onNext, onEmailsReady, gmailAuth, setGmailAu
         body: JSON.stringify({
           email_count: emailCount,
           query: '',
+          mailbox,
         }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       if (!response.ok || !data?.ok) {
         throw new Error(data?.error || `Extract failed with status ${response.status}`);
       }
@@ -228,8 +245,8 @@ export default function InboxPage({ onNext, onEmailsReady, gmailAuth, setGmailAu
 
       setConnectSuccess(
         mapped.length
-          ? `Loaded ${mapped.length} opportunity emails from Gmail.`
-          : 'No opportunity emails were found in the scanned set.'
+          ? `Loaded ${mapped.length} opportunity emails from Gmail ${mailboxLabel(mailbox)}.`
+          : `No opportunity emails were found in Gmail ${mailboxLabel(mailbox)}.`
       );
     } catch (err) {
       const msg = err?.message || 'Failed to retrieve opportunity emails from Gmail.';
@@ -242,6 +259,7 @@ export default function InboxPage({ onNext, onEmailsReady, gmailAuth, setGmailAu
       }
     } finally {
       setExtracting(false);
+      setExtractingMailbox(null);
     }
   };
 
@@ -542,13 +560,35 @@ export default function InboxPage({ onNext, onEmailsReady, gmailAuth, setGmailAu
             </button>
             <button
               className="connect-provider"
-              onClick={handleFetchGmailOpportunities}
-              disabled={extracting || gmailAuth?.busy || oauthStarting}
+              onClick={() => handleFetchGmailOpportunities('inbox')}
+              disabled={!canRetrieveFromGmail || extracting}
             >
               <span>📊</span>
-              {extracting ? ' Retrieving emails...' : ' Emails to scan'}
+              {extractingMailbox === 'inbox' ? ' Retrieving emails...' : ' Inbox Emails to scan'}
+            </button>
+            <button
+              className="connect-provider"
+              onClick={() => handleFetchGmailOpportunities('spam')}
+              disabled={!canRetrieveFromGmail || extracting}
+            >
+              <span>⚠️</span>
+              {extractingMailbox === 'spam' ? ' Retrieving emails...' : ' Spam Emails to scan'}
+            </button>
+            <button
+              className="connect-provider"
+              onClick={() => handleFetchGmailOpportunities('both')}
+              disabled={!canRetrieveFromGmail || extracting}
+            >
+              <span>🧩</span>
+              {extractingMailbox === 'both' ? ' Retrieving emails...' : ' Inbox + Spam to scan'}
             </button>
           </div>
+
+          {!gmailAuth?.connected && (
+            <p className="connect-count-hint" style={{ marginTop: '0.25rem' }}>
+              Connect Gmail first to enable Inbox, Spam, and Inbox + Spam retrieval.
+            </p>
+          )}
 
           <button className="btn-secondary" onClick={() => handleModeSelect('demo')} style={{ marginTop: '0.5rem' }}>
             → Use Demo Inbox

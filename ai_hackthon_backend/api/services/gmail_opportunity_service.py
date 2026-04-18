@@ -7,15 +7,28 @@ from api.services.gmail_extractors import (
 )
 
 
-def extract_opportunities(user_key, email_count, query=""):
+def extract_opportunities(user_key, email_count, query="", mailbox="inbox"):
     service, token_obj = gmail_client_for_user(user_key)
 
     list_kwargs = {
         "userId": "me",
         "maxResults": min(email_count, 500),
     }
+    query_parts = []
+    if mailbox == "spam":
+        list_kwargs["includeSpamTrash"] = True
+        query_parts.append("in:spam")
+    elif mailbox == "inbox":
+        query_parts.append("in:inbox")
+    elif mailbox == "both":
+        list_kwargs["includeSpamTrash"] = True
+        query_parts.append("(in:inbox OR in:spam)")
+
     if query:
-        list_kwargs["q"] = query
+        query_parts.append(query)
+
+    if query_parts:
+        list_kwargs["q"] = " ".join(query_parts)
 
     list_resp = service.users().messages().list(**list_kwargs).execute()
     message_refs = list_resp.get("messages", [])
@@ -60,7 +73,8 @@ def extract_opportunities(user_key, email_count, query=""):
             "user_key": user_key,
             "gmail_address": token_obj.gmail_address,
             "email_count_requested": email_count,
-            "gmail_query": query,
+            "gmail_query": " ".join(query_parts) if query_parts else query,
+            "mailbox": mailbox,
             "messages_scanned": scanned,
             "opportunities_found": len(opportunities),
             "generated_at": datetime.utcnow().isoformat() + "Z",

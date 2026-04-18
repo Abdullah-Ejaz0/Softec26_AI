@@ -15,6 +15,7 @@ extract_schema = openapi.Schema(
     properties={
         "email_count": openapi.Schema(type=openapi.TYPE_INTEGER, default=20, minimum=1, maximum=500),
         "query": openapi.Schema(type=openapi.TYPE_STRING, default=""),
+        "mailbox": openapi.Schema(type=openapi.TYPE_STRING, default="inbox", enum=["inbox", "spam", "both"]),
     },
 )
 
@@ -30,7 +31,15 @@ def extract_gmail_opportunities(request):
         job = GmailExtractionJob.objects.create(
             user_key=validated["user_key"],
             requested_email_count=validated["email_count"],
-            gmail_query=validated["query"],
+            gmail_query=(
+                f"in:spam {validated['query']}".strip()
+                if validated["mailbox"] == "spam"
+                else (
+                    f"(in:inbox OR in:spam) {validated['query']}".strip()
+                    if validated["mailbox"] == "both"
+                    else f"in:inbox {validated['query']}".strip()
+                )
+            ),
             status=GmailExtractionJob.STATUS_PENDING,
         )
 
@@ -39,6 +48,7 @@ def extract_gmail_opportunities(request):
                 user_key=validated["user_key"],
                 email_count=validated["email_count"],
                 query=validated["query"],
+                mailbox=validated["mailbox"],
             )
             job.status = GmailExtractionJob.STATUS_SUCCESS
             job.total_messages_scanned = result["meta"]["messages_scanned"]
