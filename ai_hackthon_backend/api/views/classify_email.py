@@ -16,7 +16,9 @@ def classify_email(request):
 
             prompt = f"""
 You are an AI assistant helping a university student filter their inbox.
-Analyze the following email and determine if it represents a REAL opportunity (Scholarship, Internship, Competition, Research Fellowship, Startup Program, etc.) that the student can apply for. Ignore spam, marketing, account updates, and automated application status emails.
+Analyze the following email and determine if it represents a REAL opportunity (Scholarship, Internship, Competition, Research Fellowship, Startup Program, etc.) that the student can apply for. 
+
+IMPORTANT: Even if the deadline has passed or the program is closed, mark it as isOpportunity: true so the student can see the match. Ignore only spam, marketing, and account updates.
 
 Email Subject: {email_subject}
 Email From: {email_from}
@@ -41,9 +43,9 @@ Extract the details and return ONLY a valid JSON object matching this schema:
             api_key = settings.GEMINI_API_KEY
             # Triple-Fallback: Cycling through the latest available models
             models_to_try = [
-                "gemini-2.5-flash", 
-                "gemini-2.5-flash-lite", 
-                "gemini-3.1-flash", 
+                "gemini-2.5-flash",
+                "gemini-2.5-flash-lite",
+                "gemini-3.1-flash",
                 "gemini-3.1-flash-lite",
             ]
             last_error = ""

@@ -15,16 +15,16 @@ const PROGRAMS = [
 
 export default function ProfilePage({ onNext, onBack, onProfileSave }) {
   const [profile, setProfile] = useState({
-    name: '',
-    degree: '',
-    program: '',
-    semester: '',
-    cgpa: '',
-    skills: '',
-    preferredTypes: [],
-    financialNeed: false,
-    locationPref: '',
-    experience: '',
+    name: 'Abdullah Khan',
+    degree: 'BS',
+    program: 'Computer Science',
+    semester: '6',
+    cgpa: '3.5',
+    skills: 'Python, React, JavaScript',
+    preferredTypes: ['Internship', 'Scholarship'],
+    financialNeed: true,
+    locationPref: 'Lahore',
+    experience: 'Built a portfolio website using React.',
   });
 
   const [errors, setErrors] = useState({});

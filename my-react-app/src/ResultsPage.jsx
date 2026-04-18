@@ -132,7 +132,10 @@ export default function ResultsPage({ emails, profile, onBack }) {
                       </span>
                       {urgency && <span className={`badge ${URGENCY_CONFIG[urgency].cls}`}>{URGENCY_CONFIG[urgency].label}</span>}
                       {result.extracted?.daysLeft !== undefined && (
-                        <span className="badge badge-gray">{result.extracted.daysLeft > 0 ? `${result.extracted.daysLeft} days left` : 'Deadline passed'}</span>
+                        <span className={`badge ${result.extracted.daysLeft < 0 ? 'badge-danger' : 'badge-gray'}`}>
+                          {result.extracted.daysLeft > 0 ? `${result.extracted.daysLeft} days left` : 
+                           result.extracted.daysLeft === 0 ? 'Deadline is TODAY! ⚡' : 'EXPIRED'}
+                        </span>
                       )}
                     </div>
                     <h3 className="rc-subject">{result.subject}</h3>
