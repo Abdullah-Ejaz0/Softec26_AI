@@ -39,8 +39,13 @@ Extract the details and return ONLY a valid JSON object matching this schema:
 }}
 """
             api_key = settings.GEMINI_API_KEY
-            # Robust fallback: Try these models in order until one works
-            models_to_try = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-flash", "gemini-pro"]
+            # Triple-Fallback: Cycling through the latest available models
+            models_to_try = [
+                "gemini-2.5-flash", 
+                "gemini-2.5-flash-lite", 
+                "gemini-3.1-flash", 
+                "gemini-3.1-flash-lite",
+            ]
             last_error = ""
 
             for model_name in models_to_try:

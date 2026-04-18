@@ -181,9 +181,6 @@
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
 }
 
-/* Financial Toggle */
-.financial-toggle-field {}
-
 .toggle-row {
   display: flex;
   gap: 0.625rem;
