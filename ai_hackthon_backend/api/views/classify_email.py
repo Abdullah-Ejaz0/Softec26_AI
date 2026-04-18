@@ -41,7 +41,7 @@ Extract the details and return ONLY a valid JSON object matching this schema:
 }}
 """
             api_key = settings.GEMINI_API_KEY
-            # Triple-Fallback: Cycling through the latest available models
+            # Use the latest available Gemini models
             models_to_try = [
                 "gemini-2.5-flash",
                 "gemini-2.5-flash-lite",

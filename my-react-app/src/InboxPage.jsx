@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DEMO_EMAILS, OPPORTUNITY_IDS } from './data';
+import { DEMO_EMAILS } from './data';
 import { classifyEmail } from './ai';
 import './InboxPage.css';
 
@@ -31,7 +31,6 @@ export default function InboxPage({ onNext, onEmailsReady }) {
 
   // The sliced set of demo emails based on emailCount
   const activeEmails = DEMO_EMAILS.slice(0, emailCount);
-  const activeOpportunityIds = activeEmails.map(e => e.id).filter(id => OPPORTUNITY_IDS.includes(id));
 
   const addCustomEmail = () => {
     if (customEmails.length < 15) {
@@ -142,9 +141,9 @@ export default function InboxPage({ onNext, onEmailsReady }) {
             <div className="email-list">
               {activeEmails.map((email, i) => {
                 const aiData = email.aiData;
-                // If we ran AI, use its determination. Otherwise fallback to hardcoded IDs.
-                const isOpp = aiData ? aiData.isOpportunity : OPPORTUNITY_IDS.includes(email.id);
-                const typeLabel = aiData ? aiData.type : OPPORTUNITY_TAG[email.id]?.type;
+                // Use AI classification
+                const isOpp = aiData?.isOpportunity ?? false;
+                const typeLabel = aiData?.type;
                 
                 const isScanning = running && scanIndex === i;
                 const wasScanned = scanned || (running && scanIndex > i);
@@ -190,9 +189,9 @@ export default function InboxPage({ onNext, onEmailsReady }) {
                       <span>From: <strong>{selectedEmail.from}</strong></span>
                       <span>{selectedEmail.time}</span>
                     </div>
-                    {scanned && (selectedEmail.aiData ? selectedEmail.aiData.isOpportunity : OPPORTUNITY_IDS.includes(selectedEmail.id)) && (
+                    {scanned && (selectedEmail.aiData?.isOpportunity ?? false) && (
                       <div className="preview-opp-banner">
-                        ✅ Real Opportunity Detected — <strong>{selectedEmail.aiData ? selectedEmail.aiData.type : OPPORTUNITY_TAG[selectedEmail.id]?.type}</strong>
+                        ✅ Real Opportunity Detected — <strong>{selectedEmail.aiData?.type}</strong>
                         {selectedEmail.aiData && selectedEmail.aiData.reasoning && (
                           <div style={{marginTop: '4px', fontSize: '0.75rem', fontWeight: 400}}>
                             {selectedEmail.aiData.reasoning}
@@ -200,9 +199,9 @@ export default function InboxPage({ onNext, onEmailsReady }) {
                         )}
                       </div>
                     )}
-                    {scanned && !(selectedEmail.aiData ? selectedEmail.aiData.isOpportunity : OPPORTUNITY_IDS.includes(selectedEmail.id)) && (
+                    {scanned && !(selectedEmail.aiData?.isOpportunity ?? false) && (
                       <div className="preview-skip-banner">
-                        ⛔ Filtered Out — {selectedEmail.aiData ? selectedEmail.aiData.reasoning : "Not an opportunity"}
+                        ⛔ Filtered Out — {selectedEmail.aiData?.reasoning ?? "Not an opportunity"}
                       </div>
                     )}
                   </div>
