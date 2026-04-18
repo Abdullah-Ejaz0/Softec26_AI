@@ -21,6 +21,8 @@ class StudentEmail(models.Model):
     recipient_email = models.EmailField()
     subject = models.CharField(max_length=255)
     body = models.TextField()
+    rank = models.PositiveIntegerField(null=True, blank=True)
+    recommendation = models.TextField(blank=True, default="")
     status = models.CharField(max_length=20, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
 

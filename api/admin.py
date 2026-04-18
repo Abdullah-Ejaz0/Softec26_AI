@@ -26,6 +26,14 @@ class StudentEmailBatchAdmin(admin.ModelAdmin):
 
 @admin.register(StudentEmail)
 class StudentEmailAdmin(admin.ModelAdmin):
-	list_display = ("id", "batch", "recipient_email", "subject", "status", "created_at")
-	search_fields = ("recipient_email", "subject", "status")
+	list_display = (
+		"id",
+		"batch",
+		"recipient_email",
+		"subject",
+		"rank",
+		"status",
+		"created_at",
+	)
+	search_fields = ("recipient_email", "subject", "status", "recommendation")
 	list_filter = ("status", "created_at")
