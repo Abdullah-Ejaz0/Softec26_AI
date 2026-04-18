@@ -1,3 +1,6 @@
 from .gmail_models import GmailExtractionJob, GmailOAuthToken
+from .email_record import *
 
-__all__ = ["GmailOAuthToken", "GmailExtractionJob"]
+# Import all models here as you add more files.
+# Example:
+# from .student_profile import *

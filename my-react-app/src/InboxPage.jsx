@@ -328,7 +328,7 @@ export default function InboxPage({ onNext, onEmailsReady, gmailAuth, setGmailAu
             )}
             {canProceedDemo && (
               <button className="btn-primary" id="btn-next-profile" onClick={onNext}>
-                Next: My Profile →
+                ✨ Get Recommendations →
               </button>
             )}
           </div>
@@ -390,7 +390,7 @@ export default function InboxPage({ onNext, onEmailsReady, gmailAuth, setGmailAu
                     </div>
                     {canProceedDemo && (selectedEmail.aiData ? selectedEmail.aiData.isOpportunity : OPPORTUNITY_IDS.includes(selectedEmail.id)) && (
                       <div className="preview-opp-banner">
-                        ✅ Real Opportunity Detected — <strong>{selectedEmail.aiData ? selectedEmail.aiData.type : OPPORTUNITY_TAG[selectedEmail.id]?.type}</strong>
+                        ✅ Real Opportunity Detected — <strong>{selectedEmail.aiData?.type}</strong>
                         {selectedEmail.aiData && selectedEmail.aiData.reasoning && (
                           <div style={{marginTop: '4px', fontSize: '0.75rem', fontWeight: 400}}>
                             {selectedEmail.aiData.reasoning}
@@ -400,7 +400,7 @@ export default function InboxPage({ onNext, onEmailsReady, gmailAuth, setGmailAu
                     )}
                     {canProceedDemo && !(selectedEmail.aiData ? selectedEmail.aiData.isOpportunity : OPPORTUNITY_IDS.includes(selectedEmail.id)) && (
                       <div className="preview-skip-banner">
-                        ⛔ Filtered Out — {selectedEmail.aiData ? selectedEmail.aiData.reasoning : "Not an opportunity"}
+                        ⛔ Filtered Out — {selectedEmail.aiData?.reasoning ?? "Not an opportunity"}
                       </div>
                     )}
                   </div>
@@ -451,7 +451,7 @@ export default function InboxPage({ onNext, onEmailsReady, gmailAuth, setGmailAu
               )}
               {scanned && (
                 <button className="btn-primary" id="btn-next-profile-custom" onClick={onNext}>
-                  Next: My Profile →
+                  ✨ Get Recommendations →
                 </button>
               )}
             </div>
