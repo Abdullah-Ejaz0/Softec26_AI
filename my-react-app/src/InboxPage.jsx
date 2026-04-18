@@ -99,6 +99,8 @@ export default function InboxPage({ onNext, onEmailsReady, gmailAuth, setGmailAu
   const [running, setRunning] = useState(false);
   const [scanned, setScanned] = useState(false);
   const [scanIndex, setScanIndex] = useState(-1);
+  const [scannedEmailsWithData, setScannedEmailsWithData] = useState([]);
+  const [emailsBeingScanned, setEmailsBeingScanned] = useState([]);
 
   const usingGmailOpportunities = gmailOpportunityEmails.length > 0;
   const canRetrieveFromGmail = Boolean(gmailAuth?.connected) && !gmailAuth?.busy && !oauthStarting;
@@ -108,10 +110,18 @@ export default function InboxPage({ onNext, onEmailsReady, gmailAuth, setGmailAu
     ? gmailOpportunityEmails.slice(0, emailCount)
     : DEMO_EMAILS.slice(0, emailCount);
 
-  const totalScannedCount = gmailMeta?.messages_scanned || activeEmails.length;
-  const opportunityCount = usingGmailOpportunities
-    ? activeEmails.length
-    : activeEmails.map((e) => e.id).filter((id) => OPPORTUNITY_IDS.includes(id)).length;
+  // Display: show emails being scanned (with progressively added aiData) or final scanned results.
+  const displayEmails = emailsBeingScanned.length > 0
+    ? emailsBeingScanned
+    : (scannedEmailsWithData.length > 0 ? scannedEmailsWithData : activeEmails);
+
+  // If we already have aiData (from Gmail extraction or completed AI scan), trust it.
+  const opportunityCount = displayEmails.filter(
+    (e) => (e.aiData ? e.aiData.isOpportunity : OPPORTUNITY_IDS.includes(e.id))
+  ).length;
+  const totalScannedCount = usingGmailOpportunities
+    ? (gmailMeta?.messages_scanned || displayEmails.length)
+    : displayEmails.length;
   const filteredOutCount = Math.max(totalScannedCount - opportunityCount, 0);
   const canProceedDemo = scanned || usingGmailOpportunities;
 
@@ -146,6 +156,7 @@ export default function InboxPage({ onNext, onEmailsReady, gmailAuth, setGmailAu
   const runScan = async (emails) => {
     setRunning(true);
     setScanned(false);
+    setEmailsBeingScanned([...emails]); // Show all emails being scanned from start
     
     let scannedEmails = [];
 
@@ -159,12 +170,19 @@ export default function InboxPage({ onNext, onEmailsReady, gmailAuth, setGmailAu
         // Fallback simulated delay
         await new Promise(r => setTimeout(r, 280));
       }
-      scannedEmails.push({ ...emails[i], aiData });
+      const emailWithData = { ...emails[i], aiData };
+      scannedEmails.push(emailWithData);
+      // Update the display with the new aiData attached to this email
+      setEmailsBeingScanned(prev => 
+        prev.map((e, idx) => idx === i ? emailWithData : e)
+      );
     }
     
     setScanIndex(-1);
     setRunning(false);
     setScanned(true);
+    setScannedEmailsWithData(scannedEmails); // Save final results for display
+    setEmailsBeingScanned([]); // Done scanning, display will now use scannedEmailsWithData
     onEmailsReady(scannedEmails);
   };
 
@@ -335,7 +353,7 @@ export default function InboxPage({ onNext, onEmailsReady, gmailAuth, setGmailAu
 
           <div className="inbox-layout">
             <div className="email-list">
-              {activeEmails.map((email, i) => {
+              {displayEmails.map((email, i) => {
                 const aiData = email.aiData;
                 // If we ran AI, use its determination. Otherwise fallback to hardcoded IDs.
                 const isOpp = aiData ? aiData.isOpportunity : OPPORTUNITY_IDS.includes(email.id);
